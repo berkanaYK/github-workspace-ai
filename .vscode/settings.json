@@ -1,0 +1,30 @@
+{
+  "editor.detectIndentation": true,
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "editor.wordWrap": "on",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/.venv/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/dist": true,
+    "**/node_modules": true
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "git.autoRepositoryDetection": "subFolders",
+  "git.openRepositoryInParentFolders": "always"
+}
