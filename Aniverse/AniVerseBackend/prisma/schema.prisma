@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String?
+  avatar    String?
+  bio       String?
+  language  String   @default("tr")
+  theme     String   @default("dark")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  progresses UserProgress[]
+  favorites  Favorite[]
+  history    ViewHistory[]
+  ratings    UserRating[]
+  comments   Comment[]
+  sessions   Session[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Content {
+  id           String        @id @default(cuid())
+  title        String
+  titleAlt     String?
+  type         ContentType
+  status       ContentStatus @default(ONGOING)
+  coverImage   String?
+  bannerImage  String?
+  synopsis     String?
+  rating       Float         @default(0)
+  ratingCount  Int           @default(0)
+  popularity   Int           @default(0)
+  year         Int?
+  studio       String?
+  author       String?
+  artist       String?
+  trailerUrl   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  genres         ContentGenre[]
+  tags           ContentTag[]
+  seasons        Season[]
+  chapters       Chapter[]
+  novelChapters  NovelChapter[]
+  relatedFrom    RelatedWork[]  @relation("fromContent")
+  relatedTo      RelatedWork[]  @relation("toContent")
+  characters     ContentCharacter[]
+  progresses     UserProgress[]
+  favorites      Favorite[]
+  ratings        UserRating[]
+  history        ViewHistory[]
+  comments       Comment[]
+
+  @@map("contents")
+  @@index([type, status])
+  @@index([popularity])
+  @@index([rating])
+}
+
+enum ContentType {
+  ANIME
+  MANGA
+  MANHWA
+  MANHUA
+  NOVEL
+}
+
+enum ContentStatus {
+  ONGOING
+  COMPLETED
+  HIATUS
+  UPCOMING
+}
+
+model Season {
+  id        String    @id @default(cuid())
+  contentId String
+  number    Int
+  title     String?
+  startDate DateTime?
+  endDate   DateTime?
+  content   Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  episodes  Episode[]
+
+  @@map("seasons")
+  @@index([contentId])
+}
+
+model Episode {
+  id          String   @id @default(cuid())
+  seasonId    String
+  number      Int
+  title       String
+  thumbnail   String?
+  videoUrl    String?
+  duration    Int?
+  isSpecial   Boolean  @default(false)
+  isFiller    Boolean  @default(false)
+  releaseDate DateTime?
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@map("episodes")
+  @@index([seasonId, number])
+}
+
+model Chapter {
+  id          String   @id @default(cuid())
+  contentId   String
+  number      Int
+  title       String
+  pages       String[]
+  releaseDate DateTime?
+  readCount   Int      @default(0)
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("chapters")
+  @@index([contentId, number])
+}
+
+model NovelChapter {
+  id          String   @id @default(cuid())
+  contentId   String
+  number      Int
+  title       String
+  body        String
+  wordCount   Int      @default(0)
+  releaseDate DateTime?
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("novel_chapters")
+  @@index([contentId, number])
+}
+
+model RelatedWork {
+  id       String       @id @default(cuid())
+  fromId   String
+  toId     String
+  relation RelationType
+  from     Content      @relation("fromContent", fields: [fromId], references: [id])
+  to       Content      @relation("toContent", fields: [toId], references: [id])
+
+  @@map("related_works")
+  @@unique([fromId, toId])
+}
+
+enum RelationType {
+  PREQUEL
+  SEQUEL
+  SPIN_OFF
+  SIDE_STORY
+  ADAPTATION
+  ALTERNATIVE
+}
+
+model Genre {
+  id       String         @id @default(cuid())
+  name     String         @unique
+  contents ContentGenre[]
+
+  @@map("genres")
+}
+
+model ContentGenre {
+  contentId String
+  genreId   String
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  genre     Genre   @relation(fields: [genreId], references: [id])
+
+  @@map("content_genres")
+  @@id([contentId, genreId])
+}
+
+model Tag {
+  id       String       @id @default(cuid())
+  name     String       @unique
+  contents ContentTag[]
+
+  @@map("tags")
+}
+
+model ContentTag {
+  contentId String
+  tagId     String
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@map("content_tags")
+  @@id([contentId, tagId])
+}
+
+model Character {
+  id       String             @id @default(cuid())
+  name     String
+  image    String?
+  contents ContentCharacter[]
+
+  @@map("characters")
+}
+
+model ContentCharacter {
+  contentId   String
+  characterId String
+  role        CharacterRole
+  voiceActor  String?
+  content     Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  character   Character @relation(fields: [characterId], references: [id])
+
+  @@map("content_characters")
+  @@id([contentId, characterId])
+}
+
+enum CharacterRole {
+  MAIN
+  SUPPORTING
+}
+
+model UserProgress {
+  id                   String      @id @default(cuid())
+  userId               String
+  contentId            String
+  watchStatus          WatchStatus @default(WATCHING)
+  lastEpisodeId        String?
+  lastEpisodeNumber    Int?
+  lastEpisodeTimestamp Int?
+  lastChapterId        String?
+  lastChapterNumber    Int?
+  lastPageIndex        Int?
+  lastNovelChapterId   String?
+  lastNovelPosition    Int?
+  updatedAt            DateTime    @updatedAt
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content              Content     @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("user_progresses")
+  @@unique([userId, contentId])
+}
+
+enum WatchStatus {
+  WATCHING
+  COMPLETED
+  ON_HOLD
+  DROPPED
+  PLAN_TO_WATCH
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("favorites")
+  @@unique([userId, contentId])
+}
+
+model UserRating {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  rating    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  content   Content  @relation(fields: [contentId], references: [id])
+
+  @@map("user_ratings")
+  @@unique([userId, contentId])
+}
+
+model ViewHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  viewedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("view_history")
+  @@index([userId, viewedAt(sort: Desc)])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}

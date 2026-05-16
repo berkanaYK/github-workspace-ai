@@ -1,12 +1,12 @@
 ﻿# AGENTS.md
 
 ## Scope
-These rules apply to `D:\GithubWorkspace&AI` and all projects created inside it, unless a child project has its own more specific `AGENTS.md`.
+These rules apply to `D:\GithubWorkspaceAI` and all projects created inside it, unless a child project has its own more specific `AGENTS.md`.
 
 This directory is a multi-repo development workspace. Each first-level folder should be treated as a separate project/repository.
 
 ## Workspace Rules
-- Create new projects, repos, scripts, docs, and generated files inside `D:\GithubWorkspace&AI` unless the user gives another path.
+- Create new projects, repos, scripts, docs, and generated files inside `D:\GithubWorkspaceAI` unless the user gives another path.
 - Before editing an existing project, identify the active repo root with `git rev-parse --show-toplevel` when available.
 - Do not touch sibling repos unless the user explicitly asks for cross-repo work.
 - If a child repo has its own `AGENTS.md`, follow that file first and use this one as the workspace default.
@@ -45,6 +45,10 @@ This directory is a multi-repo development workspace. Each first-level folder sh
 - Do not add fake fallbacks such as bare `except`, silent `catch`, placeholder defaults, or TODO stubs presented as complete work.
 - Add or update tests for bug fixes, public behavior, shared utilities, and high-risk logic.
 - Remove dead code only after checking real references.
+
+## MCP Usage
+- Use the `sequential-thinking` MCP for complex planning, ambiguous debugging, multi-step architecture decisions, or tasks where careful reasoning should happen before editing.
+- Keep user-facing explanations concise; summarize conclusions and next actions instead of exposing private chain-of-thought.
 
 ## Ask First
 Ask before doing any of these unless the user clearly requested it:
